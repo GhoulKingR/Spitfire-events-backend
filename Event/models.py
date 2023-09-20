@@ -321,8 +321,9 @@ class UserGroups(db.Model):
     """
     __tablename__ = "usergroups"
 
+    id = db.Column(db.String, primary_key=True, default=get_uuid) #Primary Key
     user_id = db.Column(db.String(36), db.ForeignKey('users.id'),  nullable=False)
-    group_id = db.Column(db.String(36), db.ForeignKey('groups.id'),  nullable=False)
+    group_id = db.Column(db.String(36), db.ForeignKey('groups.group_id'),  nullable=False)
 
     def __init__(self, user_id, group_id):
         self.user_id = user_id
