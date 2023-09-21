@@ -13,23 +13,26 @@ groups = Blueprint("groups", __name__, url_prefix="/api/groups")
 
 @groups.route("/<groupId>/members/<userId>",methods=["POST"])
 def add_user_to_group(groupId, userId):
-    if request.method=='POST':
-        # Handle POST Request here
-        group_id = groupId
-        user_id = userId
-        user = Users.query.get(user_id)
+    try:
+        group_id = Users.query.get(groupId)
+        user_id = Groups.query.get(userId)
 
-        if user != None:
-            group = Groups.query.get(group_id)
-            add_user = UserGroups(user_id=user, group_id=group)
-            
-            UserGroups.insert(add_user)
-            return jsonify({"success":True, "id":add_user.id, "message":"User added to Group"}), 201
-        else:
-            return jsonify({"success": False, "message":"User not found"}), 404
+        # Check if the group and user exist
+        if group_id is None or user_id is None:
+            return jsonify({"error": "Group or user not found"}), 404
+
+        # Check if the user is a member of the group
+        if user_id not in group_id.members:
+            return jsonify({"error": "User is not a member of the group"}), 400
+
+
+        add_user = UserGroups(user_id=user_id, group_id=group_id)
+        UserGroups.insert(add_user)
         
-    return jsonify({"success": False, "message":"Method not allowed"}), 405
-
+        return jsonify({"success": True, "id": add_user.id, "message": "User added to Group"}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+        
 
 @groups.route("/<int:group_id>", methods=["PUT"])
 def update_group(group_id):
